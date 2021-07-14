@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fun.snomis.motion.mapper.MotionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="fun.snomis.motion.pojo.Motion">
+        <id column="id" property="id" />
+        <result column="level" property="level" />
+        <result column="time" property="time" javaType="Date" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+       id, level, time, remark
+    </sql>
+
+    <!-- 根据id查询 -->
+    <select id="getMotionsById"  resultMap="BaseResultMap">
+        select * from motion
+        <if test="null!=id">
+            WHERE id = #{id}
+        </if>
+    </select>
+
+    <insert id="addMotion" parameterType="fun.snomis.motion.pojo.Motion" useGeneratedKeys="true" keyProperty="id">
+        insert into motion(level, time, remark) values(#{level}, strftime('%Y-%m-%d %H:%M:%f', datetime(#{time}/1000, 'unixepoch', 'localtime')), #{remark})
+    </insert>
+
+    <update id="updateMotion" parameterType="fun.snomis.motion.pojo.Motion">
+        update motion
+        <trim prefix="set" suffixOverrides=",">
+            <if test="remark!=null">remark=#{remark,jdbcType=VARCHAR},</if>
+            <if test="time!=null">time=#{time,jdbcType=VARCHAR},</if>
+            <if test="level!=null">level=#{level,jdbcType=INTEGER},</if>
+        </trim>
+        where id = #{id, jdbcType=BIGINT}
+    </update>
+
+    <select id="getMotionsByDate" parameterType="fun.snomis.motion.pojo.QueryBean" resultMap="BaseResultMap">
+        select *
+        from motion
+        where time Between strftime('%Y-%m-%d', datetime(#{start}/1000, 'unixepoch', 'localtime')) and strftime('%Y-%m-%d', datetime(#{end}/1000, 'unixepoch', 'localtime'))
+        order by id
+    </select>
+</mapper>
